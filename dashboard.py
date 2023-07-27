@@ -10,13 +10,13 @@ import dash_bio
 from dash.exceptions import PreventUpdate
 
 # ---------------------------------For 3d reconstruction---------------------------------
-'''reconstructionModels = []
+reconstructionModels = []
 files = os.scandir("./3d_reconstruction")
 for entry in files:
     if entry.is_file():
         fileName = entry.name.split('.')
         if fileName[0].lower() != 'model' and fileName[-1] == 'py':
-            reconstructionModels.append(fileName[0])'''
+            reconstructionModels.append(fileName[0])
 # ---------------------------------Upload element markup---------------------------------
 uploadDiv = html.Div(
     ['Drag and Drop or ',
@@ -39,14 +39,22 @@ app.layout = html.Div([html.H1('Upload Plan'),
                        cc.Dropdown(options=[x[1:] for x in const.SUPPORTED_BLENDER_FORMATS], value=None,
                                    placeholder='Export format', id='export_type'),
                        cc.Upload(uploadDiv, id='plan'),
-                       html.Button('Download', id='download_btn'),
-                       cc.Download(id="download")
+                       html.Button('Download', id='download_plan_btn'),
+                       cc.Download(id="download_plan"),
+                       html.H1('Choose Model Converter'),
+                       cc.Dropdown(options=reconstructionModels,
+                                   value=None, placeholder='2D To 3D Converter',
+                                   id='model_name'),
+                       html.H1('Upload Models'),
+                       cc.Upload(uploadDiv, id='2dModel', multiple=True),
+                       html.Button('Download', id='download_model_btn'),
+                       cc.Download(id="download_model")
                        ])
 
 
 # --------------------------Callbacks--------------------------
-@app.callback(Output('download', 'data'),
-              [Input('download_btn', 'n_clicks')],
+@app.callback(Output('download_plan', 'data'),
+              [Input('download_plan_btn', 'n_clicks')],
               [State('plan', 'contents'),
                State('plan', 'filename'),
                State('export_type', 'value')])
@@ -106,9 +114,35 @@ def convert_plan(n_clicks, uploaded_contents, file_name, out_format):
         )
     # Clean up
     IO.clean_data_folder(const.BASE_PATH)
+    # TODO clean up exported file
     return cc.send_file(export_base + '.' + out_format)
+
+
+@app.callback(Output('download_model', 'data'),
+              [Input('download_model_btn', 'n_clicks')],
+              [State('2dModel', 'contents'),
+               State('2dModel', 'filename'),
+               State('model_name', 'value')])
+def convert_plans(n_clicks, uploaded_contents, file_names, model_name):
+    if uploaded_contents is None or file_names is None or model_name is None:
+        raise PreventUpdate()
+    # TODO save images
+    image_paths = []
+    # Save uploaded files
+    for img, img_name in zip(uploaded_contents, file_names):
+        image_name = './Data/' + img_name
+        image_file = open(image_name, 'wb+')
+        image_file.write(base64.b64decode(img.split(',')[1]))
+        image_file.close()
+    # Create Constructor Model instance
+    module = __import__(model_name)
+    reconstructor_type = getattr(module, model_name)
+    reconstructor = reconstructor_type('./pretrained_models/' + model_name)
+    # Pass path array to model to convert
+    model = reconstructor.convert(image_paths)
+    # Return converted model
+    return cc.send_file(model)
 
 
 if __name__ == '__main__':
     app.run_server(port=4050)
-
