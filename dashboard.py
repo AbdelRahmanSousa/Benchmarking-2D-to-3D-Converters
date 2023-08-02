@@ -25,35 +25,38 @@ uploadDiv = html.Div(
      html.A('Select Files')
      ],
     style={
-        'width': '100%',
-        'height': '6rem',
-        'lineHeight': '60px',
+        'width': '95%',
+        'height': '15rem',
+        'lineHeight': '15rem',
         'borderWidth': '1px',
         'borderStyle': 'dashed',
         'borderRadius': '5px',
         'textAlign': 'center',
+        'margin': 'auto'
     }
 )
 # ---------------------------------App layout---------------------------------
 app = Dash(name='Floor Plan 3D Converter')
 
-home = [html.H1('2D To 3D'), html.Button('Convert Plan', id='convert_plan', n_clicks_timestamp=0),
-        html.Button('Convert 2D Model', id='convert_model', n_clicks_timestamp=0),
+home = [html.H1('2D To 3D'), html.Button('Convert Plan', className='button', id='convert_plan', n_clicks_timestamp=0),
+        html.Button('Convert 2D Model', className='button', id='convert_model', n_clicks_timestamp=0),
         html.Div(id='go_home', n_clicks_timestamp=0)]
 step1 = [html.H1('Upload Plan'),
-         cc.Dropdown(options=[x[1:] for x in const.SUPPORTED_BLENDER_FORMATS], value=None,
-                     placeholder='Export format', id='export_type'),
          cc.Upload(uploadDiv, id='upload'),
-         html.Button('Download', id='download_plan_btn'),
+         html.Div(id='uploaded_content'),
+         cc.Dropdown(options=[x[1:] for x in const.SUPPORTED_BLENDER_FORMATS], value=None,
+                     placeholder='Export format', id='Download As..'),
+         html.Button('Download', className='button', id='download_plan_btn'),
          cc.Download(id="download_plan"),
-         html.Button('Back', id='go_home'),
+         html.Button('Back', className='button', id='go_home'),
          html.Div(id='convert_model', n_clicks_timestamp=0),
          html.Div(id='convert_plan', n_clicks_timestamp=0)]
 step2 = [html.H1('Convert 2D Model'),
          cc.Upload(uploadDiv, id='upload', multiple=True),
-         html.Button('Download', id='download_model_btn'),
+         html.Div(id='uploaded_content'),
+         html.Button('Download', className='button', id='download_model_btn'),
          cc.Download(id="download_model"),
-         html.Button('Back', 'go_home'),
+         html.Button('Back', className='button', id='go_home'),
          html.Div(id='convert_model', n_clicks_timestamp=0),
          html.Div(id='convert_plan', n_clicks_timestamp=0)
          ]
@@ -66,10 +69,13 @@ app.layout = html.Div([cc.Store('current_page', data=-1),
 
 
 # --------------------------Callbacks--------------------------
-@app.callback(Output('upload', 'children'), Input('upload', 'contents'), [State('upload', 'filename')])
+@app.callback(Output('uploaded_content', 'children'), Input('upload', 'contents'), [State('upload', 'filename')])
 def change_upload_view(contents, files):
-    uploaded_files = zip(contents, files)
-    raise PreventUpdate()
+    if contents is None or files is None:
+        raise PreventUpdate()
+    for b64file, name in zip(contents, files):
+        pass
+    return ' '.join(files)
 
 
 @app.callback(Output('container', 'children'),

@@ -24,16 +24,20 @@ class Pix2Vox(ConstructorModel):
 
     def __init__(self, path: str):
         self.cfg = cfg
+        # Save full model path
         cfg.CONST.WEIGHTS = os.path.join(path, 'Pix2Vox-A-ShapeNet.pth')
+        # Initialize network
         self.encoder = Encoder(self.cfg)
         self.decoder = Decoder(self.cfg)
         self.refiner = Refiner(self.cfg)
         self.merger = Merger(self.cfg)
+        # Accelerate network using CUDA if available
         if torch.cuda.is_available():
             self.encoder = torch.nn.DataParallel(self.encoder).cuda()
             self.decoder = torch.nn.DataParallel(self.decoder).cuda()
             self.refiner = torch.nn.DataParallel(self.refiner).cuda()
             self.merger = torch.nn.DataParallel(self.merger).cuda()
+        # Load model and update network sate
         checkpoint = torch.load(cfg.CONST.WEIGHTS)
         epoch_idx = checkpoint['epoch_idx']
         self.encoder.load_state_dict(checkpoint['encoder_state_dict'])
@@ -42,6 +46,7 @@ class Pix2Vox(ConstructorModel):
             self.refiner.load_state_dict(checkpoint['refiner_state_dict'])
         if cfg.NETWORK.USE_MERGER:
             self.merger.load_state_dict(checkpoint['merger_state_dict'])
+        # Set network mode to evaluate
         self.encoder.eval()
         self.decoder.eval()
         self.refiner.eval()
@@ -73,6 +78,7 @@ class Pix2Vox(ConstructorModel):
                 raw_features, generated_volume = self.decoder(image_features)
                 generated_volume = self.merger(raw_features, generated_volume)
                 generated_volume = self.refiner(generated_volume)
+            # Save output to ./Target/(uuid).binvox
             voxel_data = generated_volume[0].cpu()
             voxel_data = voxel_data.numpy()
             dims = voxel_data.shape

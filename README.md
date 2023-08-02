@@ -19,7 +19,7 @@
 
 ### Contents 
 
-The project have a structure as below: 
+The project has a structure as below: 
 
   
 
@@ -27,13 +27,21 @@ The project have a structure as below:
 
 ├── Benchmarking-2D-to-3D-Converters
 
-│   ├── dashboard.py 
+│   ├── dashboard.py
+│   ├── pretrained_models
+│   ├── reconstruction
+│   ├──   ├── Pix2Vox.py
+│   ├──   ├── reconstruction_dataset.py
+│   ├──   ├── model.py
+│   ├──   ├── Pix2VoxUtils
 
 ``` 
 
 *  Main Files Description 
 
-`dashboard.py` the main dashboard that allows the user to upload a 2D floor plan and place devices in it. 
+`dashboard.py` the main dashboard that allows the user to upload a 2D floor plan and place devices in it.
+
+`Pix2Vox.py` a class that inherits from ReconstructionModel and is responsible for loading Pix2Vox network and convert models using it.
 
 Example 
 
@@ -50,7 +58,7 @@ python dashboard.py
 
 ### Results 
 
-- a web based dashboard that can convert both floorplans and models
+- a web based dashboard that can convert both floor plans and models
 
   
 
