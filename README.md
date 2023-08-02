@@ -10,12 +10,12 @@
 ### Description: 
 
 - A dashboard that allows user to upload 2D floor plan and 2D devices, it then converts both the floor 
-  plan and devices to their corresponding 3D shape and allows the user to place each device somewhere in the plan and 
-  then displays the device's reading.
+  plan and devices to their corresponding 3D shape.
 
 ### Requirements 
 
-- Python 3.x 
+- Python 3.11+
+- Pix2Vox [pretrained model](https://gateway.infinitescript.com/s/Pix2Vox-A-ShapeNet.pth) and place it in '/pretrained_models/Pix2Vox'
 
 ### Contents 
 
@@ -27,7 +27,7 @@ The project have a structure as below:
 
 ├── Benchmarking-2D-to-3D-Converters
 
-│   ├── main.py 
+│   ├── dashboard.py 
 
 ``` 
 
@@ -50,10 +50,10 @@ python dashboard.py
 
 ### Results 
 
-- a web based dashboard that
+- a web based dashboard that can convert both floorplans and models
 
   
 
 #### Deployment  
 
-- The code is deployed on local server
+- The dashboard is deployed on a local server

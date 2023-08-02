@@ -15,18 +15,7 @@ Copyright (C) 2022 Daniel Westberg
 SUPPORTED_BLENDER_FORMATS = (
     ".obj",
     ".x3d",
-    ".gltf",
-    ".mtl",
-    ".webm",
     ".blend",
-    ".vrml",
-    ".usd",
-    ".udim",
-    ".stl",
-    ".svg",
-    ".dxf",
-    ".fbx",
-    ".3ds",
 )
 BASE_FORMAT = ".blend"
 

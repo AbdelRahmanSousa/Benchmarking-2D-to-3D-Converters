@@ -26,39 +26,72 @@ uploadDiv = html.Div(
      ],
     style={
         'width': '100%',
-        'height': '50%',
+        'height': '6rem',
         'lineHeight': '60px',
         'borderWidth': '1px',
         'borderStyle': 'dashed',
         'borderRadius': '5px',
         'textAlign': 'center',
-        'margin': '10px'
     }
 )
 # ---------------------------------App layout---------------------------------
 app = Dash(name='Floor Plan 3D Converter')
-app.layout = html.Div([html.H1('Upload Plan'),
-                       cc.Dropdown(options=[x[1:] for x in const.SUPPORTED_BLENDER_FORMATS], value=None,
-                                   placeholder='Export format', id='export_type'),
-                       cc.Upload(uploadDiv, id='plan'),
-                       html.Button('Download', id='download_plan_btn'),
-                       cc.Download(id="download_plan"),
-                       html.H1('Choose Model Converter'),
-                       cc.Dropdown(options=['Pix2Vox'],
-                                   value=None, placeholder='2D To 3D Converter',
-                                   id='model_name'),
-                       html.H1('Upload Models'),
-                       cc.Upload(uploadDiv, id='2dModel', multiple=True),
-                       html.Button('Download', id='download_model_btn'),
-                       cc.Download(id="download_model")
-                       ])
+
+home = [html.H1('2D To 3D'), html.Button('Convert Plan', id='convert_plan', n_clicks_timestamp=0),
+        html.Button('Convert 2D Model', id='convert_model', n_clicks_timestamp=0),
+        html.Div(id='go_home', n_clicks_timestamp=0)]
+step1 = [html.H1('Upload Plan'),
+         cc.Dropdown(options=[x[1:] for x in const.SUPPORTED_BLENDER_FORMATS], value=None,
+                     placeholder='Export format', id='export_type'),
+         cc.Upload(uploadDiv, id='upload'),
+         html.Button('Download', id='download_plan_btn'),
+         cc.Download(id="download_plan"),
+         html.Button('Back', id='go_home'),
+         html.Div(id='convert_model', n_clicks_timestamp=0),
+         html.Div(id='convert_plan', n_clicks_timestamp=0)]
+step2 = [html.H1('Convert 2D Model'),
+         cc.Upload(uploadDiv, id='upload', multiple=True),
+         html.Button('Download', id='download_model_btn'),
+         cc.Download(id="download_model"),
+         html.Button('Back', 'go_home'),
+         html.Div(id='convert_model', n_clicks_timestamp=0),
+         html.Div(id='convert_plan', n_clicks_timestamp=0)
+         ]
+pages = [home, step1, step2]
+
+app.layout = html.Div([cc.Store('current_page', data=-1),
+                       html.Div(html.Img(src='./assets/logo.png', id='logo'), id='bar'),
+                       html.Div(pages[0], id='container')], id='main',
+                      style={'backgroundImage': 'url(assets/background.jpg)'})
 
 
 # --------------------------Callbacks--------------------------
+@app.callback(Output('upload', 'children'), Input('upload', 'contents'), [State('upload', 'filename')])
+def change_upload_view(contents, files):
+    uploaded_files = zip(contents, files)
+    raise PreventUpdate()
+
+
+@app.callback(Output('container', 'children'),
+              [Input('convert_model', 'n_clicks_timestamp'),
+               Input('convert_plan', 'n_clicks_timestamp'),
+               Input('go_home', 'n_clicks_timestamp')
+               ])
+def goToPage(model_timestamp, plan_timestamp, home_timestamp):
+    if model_timestamp == plan_timestamp == home_timestamp:
+        raise PreventUpdate()
+    if home_timestamp > plan_timestamp and home_timestamp > model_timestamp:
+        return pages[0]
+    elif plan_timestamp > model_timestamp:
+        return pages[1]
+    else:
+        return pages[2]
+
+
 @app.callback(Output('download_plan', 'data'),
               [Input('download_plan_btn', 'n_clicks')],
-              [State('plan', 'contents'),
-               State('plan', 'filename'),
+              [State('upload', 'contents'),
+               State('upload', 'filename'),
                State('export_type', 'value')])
 def convert_plan(n_clicks, uploaded_contents, file_name, out_format):
     if file_name is None or uploaded_contents is None or out_format is None:
@@ -119,13 +152,16 @@ def convert_plan(n_clicks, uploaded_contents, file_name, out_format):
     return cc.send_file(export_base + '.' + out_format)
 
 
+# Create Constructor Model instance
+reconstructor = Pix2Vox('./pretrained_models/Pix2Vox')
+
+
 @app.callback(Output('download_model', 'data'),
               [Input('download_model_btn', 'n_clicks')],
-              [State('2dModel', 'contents'),
-               State('2dModel', 'filename'),
-               State('model_name', 'value')])
-def convert_plans(n_clicks, uploaded_contents, file_names, model_name):
-    if uploaded_contents is None or file_names is None or model_name is None:
+              [State('upload', 'contents'),
+               State('upload', 'filename')])
+def convert_model(n_clicks, uploaded_contents, file_names):
+    if uploaded_contents is None or file_names is None:
         raise PreventUpdate()
     image_paths = []
     # Save uploaded files
@@ -135,8 +171,6 @@ def convert_plans(n_clicks, uploaded_contents, file_names, model_name):
         image_file.write(base64.b64decode(img.split(',')[1]))
         image_file.close()
         image_paths.append(image_name)
-    # Create Constructor Model instance
-    reconstructor = Pix2Vox('./pretrained_models/' + model_name)
     # Pass path array to model to convert
     model = reconstructor.convert(image_paths)
     # Return converted model

@@ -1,0 +1,33 @@
+html {margin: 0; padding: 0; width: 100% !important; height: 100%;}
+body {margin: 0; padding: 0; width: 100% !important; height: 100%;}
+#react-entry-point {height:100%; width:100%}
+h1,p {text-align: center; color: #353535}
+#logo {
+    margin-top: 0.5rem;
+    margin-left: 2rem;
+    width: 10%;
+}
+#bar {
+    width:100%;
+    height:10%;
+    border-radius: 0 0 0.5rem 0.5rem
+}
+#container {
+    background-color: #EEEDED;
+    height: 75%;
+    width: 50%;
+    box-shadow: 0.5rem 0.5rem 1.5rem 0px #000000AA;
+    border-radius: 0.5rem;
+    margin-top: 3rem
+}
+#main {
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+}
