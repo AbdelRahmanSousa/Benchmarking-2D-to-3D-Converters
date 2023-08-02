@@ -50,7 +50,7 @@ python dashboard.py
 
 ### Results 
 
-- a web based dashboard that can convert both floorplans and models
+- a web based dashboard that can convert both floor plans and models
 
   
 
